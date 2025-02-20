@@ -1,4 +1,4 @@
-name: 'URL Health Check'
+name: 'URL Health Check -v2'
 description: 'Simple site health check that makes an HTTP request to provided URL'
 author: 'Petr Chalupa <chalupa.petr93@gmail.com>'
 inputs:
