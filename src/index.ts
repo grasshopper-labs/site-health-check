@@ -32,6 +32,7 @@ const checkSite = async (attempt: number = 1) => {
 			}
 		} else {
 			info(`✅ Site is up! HTTP status: ${statusCode}`);
+			process.exit(0);
 		}
 	};
 
