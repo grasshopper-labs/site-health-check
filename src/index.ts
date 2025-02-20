@@ -7,14 +7,29 @@ enum Protocol {
 	https = 'https:',
 }
 
-try {
-	const url = new URL(getInput('url'));
-	info(`🔍 Checking site status: ${url.href}`);
+const url = new URL(getInput('url'));
+const maxAttempts = parseInt(getInput('max-attempts') || '1', 10);
+const retryDelay = parseInt(getInput('retry-delay') || '10000', 10); // Default to 10s
+const followRedirect = getInput('follow-redirect') === 'true';
+const expectStatus = parseInt(getInput('expect-status') || '200', 10);
+
+info(`🔍 Checking site status: ${url.href}`);
+info(`🔄 Max attempts: ${maxAttempts}, Retry delay: ${retryDelay}ms, Follow redirect: ${followRedirect}, Expected status: ${expectStatus}`);
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const checkSite = async (attempt: number = 1) => {
+	info(`🚀 Attempt ${attempt} of ${maxAttempts}`);
 
 	const handleResponse = ({ statusCode }: IncomingMessage) => {
-		if (statusCode !== 200) {
+		if (statusCode !== expectStatus) {
 			logError(`❌ Site responded with HTTP code: ${statusCode}`);
-			setFailed(`Site is down! Received HTTP status: ${statusCode}`);
+			if (attempt < maxAttempts) {
+				info(`🔁 Retrying in ${retryDelay}ms...`);
+				setTimeout(() => checkSite(attempt + 1), retryDelay);
+			} else {
+				setFailed(`Site is down! Expected HTTP status: ${expectStatus}, but received: ${statusCode}`);
+			}
 		} else {
 			info(`✅ Site is up! HTTP status: ${statusCode}`);
 		}
@@ -31,13 +46,11 @@ try {
 			break;
 		default:
 			logError(`⚠️ Protocol ${url.protocol} is not implemented yet!`);
-			throw new Error(`Protocol ${url.protocol} is not implemented yet!`);
+			setFailed(`Protocol ${url.protocol} is not implemented yet!`);
 	}
-} catch (error) {
-	if (error instanceof Error) {
-		logError(`🚨 Error: ${error.message}`);
-		setFailed(error.message);
-	}
+};
 
-	setFailed('❗ There was a problem with processing your request.');
-}
+checkSite().catch(error => {
+	logError(`🚨 Error: ${error.message}`);
+	setFailed(error.message);
+});

@@ -1,10 +1,26 @@
 name: 'URL Health Check -v2'
 description: 'Simple site health check that makes an HTTP request to provided URL'
-author: 'Petr Chalupa <chalupa.petr93@gmail.com>'
+author: 'Petr Chalupa <chalupa.petr93@gmail.com>, David Tayar <davidt@grasshopperlabs.io>'
 inputs:
     url:
         description: 'Site URL'
         required: true
+    max-attempts:
+        description: 'Maximum number of attempts before failing'
+        required: false
+        default: '1'
+    retry-delay:
+        description: 'Delay between retries in milliseconds'
+        required: false
+        default: '10000'
+    follow-redirect:
+        description: 'Whether to follow redirects (true/false)'
+        required: false
+        default: 'false'
+    expect-status:
+        description: 'Expected HTTP status code'
+        required: false
+        default: '200'
 runs:
     using: 'node20'
     main: 'dist/index.js'
