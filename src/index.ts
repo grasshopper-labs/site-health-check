@@ -36,20 +36,33 @@ const checkSite = async (attempt: number = 1) => {
 		}
 	};
 
+	const handleError = (error: Error) => {
+		logError(`🚨 Error: ${error.message}`);
+		if (attempt < maxAttempts) {
+			info(`🔁 Retrying in ${retryDelay}ms...`);
+			setTimeout(() => checkSite(attempt + 1), retryDelay);
+		} else {
+			setFailed(`Failed to connect to site after ${maxAttempts} attempts.`);
+		}
+	};
+
 	switch (url.protocol) {
 		case Protocol.http:
 			info(`🌍 Using HTTP protocol to check site.`);
-			getHttp(url, handleResponse);
+			const httpReq = getHttp(url, handleResponse);
+			httpReq.on('error', handleError);
 			break;
 		case Protocol.https:
 			info(`🔒 Using HTTPS protocol to check site.`);
-			getHttps(url, handleResponse);
+			const httpsReq = getHttps(url, handleResponse);
+			httpsReq.on('error', handleError);
 			break;
 		default:
 			logError(`⚠️ Protocol ${url.protocol} is not implemented yet!`);
 			setFailed(`Protocol ${url.protocol} is not implemented yet!`);
 	}
 };
+
 
 checkSite().catch(error => {
 	logError(`🚨 Error: ${error.message}`);
