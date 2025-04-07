@@ -17,7 +17,6 @@ A **GitHub Action** for monitoring website health by making an HTTP request to a
 | `url`         | ✅ Yes   | URL of the website to check |
 | `max-attempts` | ❌ No   | Number of retries before failing (default: `1`) |
 | `retry-delay`  | ❌ No   | Delay between retries in **milliseconds** (default: `10000` ms) |
-| `follow-redirect` | ❌ No | Follow redirects? (`true`/`false`, default: `false`) |
 | `expect-status`  | ❌ No | Expected HTTP status code (default: `200`) |
 
 ---
@@ -35,7 +34,6 @@ jobs:
           url: "https://domain.com/health/"
           max-attempts: 6
           retry-delay: 10000
-          follow-redirect: true
           expect-status: 200
 ```
 

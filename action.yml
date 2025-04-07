@@ -13,10 +13,6 @@ inputs:
         description: 'Delay between retries in milliseconds'
         required: false
         default: '10000'
-    follow-redirect:
-        description: 'Whether to follow redirects (true/false)'
-        required: false
-        default: 'false'
     expect-status:
         description: 'Expected HTTP status code'
         required: false
