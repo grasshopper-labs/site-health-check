@@ -1,6 +1,7 @@
 import { getInput, setFailed, info, error as logError } from '@actions/core';
 import { get as getHttps } from 'https';
-import { get as getHttp, IncomingMessage } from 'http';
+import { get as getHttp } from 'http';
+import { IncomingMessage } from 'http';
 
 enum Protocol {
 	http = 'http:',
@@ -18,13 +19,17 @@ info(`🔄 Max attempts: ${maxAttempts}, Retry delay: ${retryDelay}ms, Follow re
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-const checkSite = async (attempt: number = 1): Promise<void> => {
-	info(`🚀 Attempt ${attempt} of ${maxAttempts}`);
+const checkSite = async (): Promise<void> => {
+	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+		info(`🚀 Attempt ${attempt} of ${maxAttempts}`);
 
-	try {
 		const statusCode = await new Promise<number>((resolve, reject) => {
-			const handleResponse = (res: IncomingMessage) => resolve(res.statusCode || 0);
-			const handleError = (err: Error) => reject(err);
+			const handleResponse = (res: IncomingMessage) => {
+				resolve(res.statusCode || 0);
+			};
+			const handleError = (err: Error) => {
+				reject(err);
+			};
 
 			switch (url.protocol) {
 				case Protocol.http:
@@ -38,35 +43,29 @@ const checkSite = async (attempt: number = 1): Promise<void> => {
 					httpsReq.on('error', handleError);
 					break;
 				default:
-					return reject(new Error(`Protocol ${url.protocol} is not implemented yet!`));
+					reject(new Error(`⚠️ Protocol ${url.protocol} is not implemented.`));
 			}
+		}).catch((err: Error) => {
+			logError(`🚨 Error: ${err.message}`);
+			return 0; // return 0 as fake status to retry
 		});
 
-		if (statusCode !== expectStatus) {
+		if (statusCode === expectStatus) {
+			info(`✅ Site is up! HTTP status: ${statusCode}`);
+			return;
+		} else {
 			logError(`❌ Site responded with HTTP code: ${statusCode}`);
 			if (attempt < maxAttempts) {
 				info(`🔁 Retrying in ${retryDelay}ms...`);
 				await delay(retryDelay);
-				await checkSite(attempt + 1);
 			} else {
 				setFailed(`Site is down! Expected HTTP status: ${expectStatus}, but received: ${statusCode}`);
 			}
-		} else {
-			info(`✅ Site is up! HTTP status: ${statusCode}`);
-		}
-	} catch (err) {
-		logError(`🚨 Error: ${(err as Error).message}`);
-		if (attempt < maxAttempts) {
-			info(`🔁 Retrying in ${retryDelay}ms...`);
-			await delay(retryDelay);
-			await checkSite(attempt + 1);
-		} else {
-			setFailed(`Failed to connect to site after ${maxAttempts} attempts.`);
 		}
 	}
 };
 
 checkSite().catch(error => {
-	logError(`🚨 Error: ${error.message}`);
+	logError(`🚨 Unexpected error: ${error.message}`);
 	setFailed(error.message);
 });
