@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🔍 Check Site Health
-        uses: grasshopper-labs/site-health-check@v2.0.0
+        uses: grasshopper-labs/site-health-check@v3.0.3
         with:
           url: "https://domain.com/health/"
           max-attempts: 6
