@@ -2,13 +2,32 @@ import os
 import time
 import requests
 import sys
+import re
+
+def parse_duration(value):
+    value = str(value).strip().lower()
+    if value.endswith("ms"):
+        return float(value[:-2]) / 1000
+    elif value.endswith("s"):
+        return float(value[:-1])
+    elif value.endswith("m"):
+        return float(value[:-1]) * 60
+    else:
+        # Assume milliseconds if just a number
+        return float(value) / 1000
 
 url = os.getenv('INPUT_URL')
 max_attempts = int(os.getenv('INPUT_MAX-ATTEMPTS', '1'))
-retry_delay = int(os.getenv('INPUT_RETRY-DELAY', '10000')) / 1000  # convert to seconds
+retry_delay_raw = os.getenv('INPUT_RETRY-DELAY', '10000')
 expect_status = int(os.getenv('INPUT_EXPECT-STATUS', '200'))
 
-print(f"Waiting for {url} to return status {expect_status}")
+try:
+    retry_delay = parse_duration(retry_delay_raw)
+except Exception as e:
+    print(f"❌ Failed to parse retry-delay '{retry_delay_raw}': {e}")
+    sys.exit(1)
+
+print(f"🔁 Will check {url} for status {expect_status}, up to {max_attempts} times, every {retry_delay} seconds.")
 
 for attempt in range(1, max_attempts + 1):
     try:
