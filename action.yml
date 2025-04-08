@@ -1,6 +1,6 @@
 name: 'URL Health Check -v2'
-description: 'Simple site health check that makes an HTTP request to provided URL'
-author: 'Petr Chalupa <chalupa.petr93@gmail.com>, David Tayar <davidt@grasshopperlabs.io>'
+description: 'Waits for a URL to return a specific HTTP status code with retries.'
+author: 'David Tayar <davidt@grasshopperlabs.io>'
 inputs:
     url:
         description: 'Site URL'
@@ -18,8 +18,9 @@ inputs:
         required: false
         default: '200'
 runs:
-    using: 'node20'
-    main: 'dist/index.js'
+    using: 'python'
+    main: 'src/main.py'
+    pre: 'src/install_deps.py'
 branding:
     icon: 'activity'
     color: 'white'
