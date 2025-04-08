@@ -18,9 +18,8 @@ inputs:
         required: false
         default: '200'
 runs:
-    using: 'python'
-    main: 'src/main.py'
-    pre: 'src/install_deps.py'
+    using: 'docker'
+    image: 'Dockerfile'
 branding:
     icon: 'activity'
     color: 'white'
